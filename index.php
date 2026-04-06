@@ -1,0 +1,336 @@
+<?php
+// 1. Memulai session untuk mengecek login
+session_start();
+
+// 2. Memastikan path ke app.php benar
+// Asumsi: app.php berada di folder 'backend/app.php'
+require_once __DIR__ . '/backend/app.php'; 
+
+// 3. Ambil data barang dari database
+$data_barang = mysqli_query($koneksi, "SELECT * FROM barang ORDER BY id_barang DESC");
+
+// 4. Cek status login
+$is_login = isset($_SESSION['id_user']);
+?>
+
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sewa Proyektor & Perlengkapan Presentasi - SinarProyek</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e2b4a 0%, #2c3e6e 100%);
+        }
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(37, 99, 235, 0.25);
+        }
+        .glow-effect {
+            box-shadow: 0 0 30px rgba(37, 99, 235, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+    <!-- Navbar Modern -->
+    <nav class="fixed w-full z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-3">
+                    <div class="bg-gradient-to-br from-blue-700 to-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                            <path d="M2 10h20"/>
+                        </svg>
+                    </div>
+                    <span class="font-extrabold text-2xl text-slate-900 tracking-tight">Sinar<span class="text-blue-600">Proyek</span></span>
+                </div>
+
+                <div class="flex items-center gap-8">
+                    <div class="hidden md:flex items-center gap-8">
+                        <a href="#paket" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Katalog Proyektor</a>
+                        <a href="#cara-sewa" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Panduan Sewa</a>
+                        <a href="#tentang" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Tentang Kami</a>
+                    </div>
+
+                    <?php if($is_login): ?>
+                        <div class="relative group">
+                            <button class="flex items-center gap-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 p-1.5 pr-4 rounded-full transition-all">
+                                <div class="w-9 h-9 bg-gradient-to-br from-blue-600 to-blue-500 text-white rounded-full flex items-center justify-center font-bold shadow-md shadow-blue-200 overflow-hidden">
+                                    <?php if(!empty($_SESSION['foto'])): ?>
+                                        <img src="storage/user/<?= $_SESSION['foto'] ?>" class="w-full h-full object-cover">
+                                    <?php else: ?>
+                                        <?= strtoupper(substr($_SESSION['nama'], 0, 1)) ?>
+                                    <?php endif; ?>
+                                </div>
+                                <span class="text-sm font-semibold text-slate-700"><?= explode(' ', $_SESSION['nama'])[0] ?></span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-slate-400"><path d="m6 9 6 6 6-6"/></svg>
+                            </button>
+                            
+                            <div class="absolute right-0 w-56 mt-3 py-2 bg-white rounded-2xl shadow-xl border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                <a href="riwayat_pinjam.php" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+                                    Riwayat Sewa
+                                </a>
+                                <hr class="my-2 border-slate-100">
+                                <a href="backend/auth/logout.php" class="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                    Keluar
+                                </a>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <a href="backend/auth/login.php" class="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-7 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-200">
+                            Masuk / Daftar
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section Proyektor -->
+    <section class="relative pt-32 pb-24 lg:pt-40 lg:pb-32 overflow-hidden gradient-bg">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+        </div>
+        
+        <div class="relative z-10 max-w-7xl mx-auto px-4 text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8">
+                <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                <span class="text-xs font-semibold text-white/90 tracking-wider">PROYEKTOR FULL HD & 4K</span>
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold text-white tracking-tight leading-[1.1] mb-6">
+                Sukseskan Presentasi, <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-blue-200">Kami Sediakan Proyektornya</span>
+            </h1>
+            <p class="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed">
+                Sewa proyektor berkualitas tinggi untuk presentasi, seminar, event, dan bioskop pribadi. Teknologi terbaru dengan brightness tinggi!
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#paket" class="bg-white hover:bg-slate-100 text-blue-700 px-10 py-4 rounded-xl font-bold text-lg transition-all shadow-2xl hover:shadow-blue-500/20">
+                    Cek Ketersediaan
+                </a>
+                <a href="#cara-sewa" class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/30 px-10 py-4 rounded-xl font-bold text-lg transition-all">
+                    Cara Sewa
+                </a>
+            </div>
+            
+            <!-- Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto mt-16 pt-8 border-t border-white/20">
+                <div>
+                    <div class="text-3xl font-extrabold text-white">50+</div>
+                    <div class="text-sm text-white/60 mt-1">Unit Proyektor</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-extrabold text-white">1000+</div>
+                    <div class="text-sm text-white/60 mt-1">Event Sukses</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-extrabold text-white">24/7</div>
+                    <div class="text-sm text-white/60 mt-1">Support Teknis</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-extrabold text-white">100%</div>
+                    <div class="text-sm text-white/60 mt-1">Garansi Jalan</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Katalog Proyektor -->
+    <section id="paket" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <span class="text-blue-600 font-semibold text-sm tracking-wider uppercase mb-2 block">KATALOG PROYEKTOR</span>
+                <h2 class="text-4xl font-extrabold text-slate-900 mb-4">Pilih Proyektor Sesuai Kebutuhan</h2>
+                <p class="text-slate-500">Berbagai pilihan proyektor dengan spesifikasi lengkap untuk berbagai acara</p>
+            </div>
+
+            <!-- Filter Cepat -->
+            <div class="flex flex-wrap justify-center gap-3 mb-12">
+                <button class="px-5 py-2 bg-blue-600 text-white rounded-full text-sm font-semibold">Semua Tipe</button>
+                <button class="px-5 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-full text-sm font-semibold transition">Full HD</button>
+                <button class="px-5 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-full text-sm font-semibold transition">4K UHD</button>
+                <button class="px-5 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-full text-sm font-semibold transition">Laser Proyektor</button>
+                <button class="px-5 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-full text-sm font-semibold transition">Short Throw</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <?php while($b = mysqli_fetch_assoc($data_barang)): ?>
+                <div class="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-blue-300 card-hover glow-effect">
+                    <div class="h-56 bg-slate-100 overflow-hidden relative">
+                        <?php if(!empty($b['foto'])): ?>
+                            <img src="storage/barang/<?= $b['foto'] ?>" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                        <?php else: ?>
+                            <div class="flex items-center justify-center h-full bg-gradient-to-br from-slate-100 to-slate-200 text-slate-400 font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/><path d="M2 10h20"/></svg>
+                            </div>
+                        <?php endif; ?>
+                        <div class="absolute top-4 right-4 flex gap-2">
+                            <span class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-sm">
+                                Stok: <?= $b['jumlah'] ?>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-extrabold text-slate-900"><?= $b['nama_barang'] ?></h3>
+                            <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded">Tersedia</span>
+                        </div>
+                        
+                        <!-- Spesifikasi Singkat (Asumsi dari keterangan) -->
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <div class="bg-slate-50 p-2 rounded-lg text-center">
+                                <span class="text-xs text-slate-500">Resolusi</span>
+                                <p class="font-bold text-sm">Full HD</p>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded-lg text-center">
+                                <span class="text-xs text-slate-500">Brightness</span>
+                                <p class="font-bold text-sm">3500 ANSI</p>
+                            </div>
+                        </div>
+                        
+                        <p class="text-slate-600 text-sm mb-5 line-clamp-2 border-l-2 border-blue-300 pl-3">"<?= $b['keterangan'] ?>"</p>
+                        
+                        <div class="flex gap-3">
+                            <a href="detail_barang.php?id=<?= $b['id_barang'] ?>" class="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-all group-hover:shadow-lg group-hover:shadow-blue-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                                Detail
+                            </a>
+                            <a href="sewa.php?id=<?= $b['id_barang'] ?>" class="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 rounded-xl transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                Sewa
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <?php endwhile; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- Keunggulan Layanan -->
+    <section class="py-16 bg-blue-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-xl text-center">
+                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    </div>
+                    <h4 class="font-bold text-slate-900 mb-2">Pengiriman Cepat</h4>
+                    <p class="text-sm text-slate-500">Gratis antar jemput dalam kota</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl text-center">
+                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <h4 class="font-bold text-slate-900 mb-2">Kondisi Terawat</h4>
+                    <p class="text-sm text-slate-500">Service rutin tiap bulan</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl text-center">
+                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <h4 class="font-bold text-slate-900 mb-2">Garansi Jalan</h4>
+                    <p class="text-sm text-slate-500">Teknisi siaga 24 jam</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl text-center">
+                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M12 22V12"/><path d="M3.3 7 12 12l8.7-5"/><path d="M7.5 9.5 16 15"/></svg>
+                    </div>
+                    <h4 class="font-bold text-slate-900 mb-2">Kelengkapan</h4>
+                    <p class="text-sm text-slate-500">Kabel, layar, remote siap</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cara Sewa Proyektor -->
+    <section id="cara-sewa" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <span class="text-blue-600 font-semibold text-sm tracking-wider uppercase mb-2 block">PANDUAN SEWA</span>
+                <h2 class="text-4xl font-extrabold text-slate-900 mb-4">4 Langkah Mudah Sewa Proyektor</h2>
+                <p class="text-slate-500">Proses cepat dan transparan, proyektor siap digunakan</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+                <div class="hidden md:block absolute top-16 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
+                
+                <div class="relative text-center">
+                    <div class="w-16 h-16 bg-blue-600 text-white font-black text-xl rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">1</div>
+                    <h4 class="font-extrabold text-lg text-slate-900 mb-2">Pilih Proyektor</h4>
+                    <p class="text-sm text-slate-500">Cek katalog dan pilih sesuai kebutuhan</p>
+                </div>
+                <div class="relative text-center">
+                    <div class="w-16 h-16 bg-blue-600 text-white font-black text-xl rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">2</div>
+                    <h4 class="font-extrabold text-lg text-slate-900 mb-2">Ajukan Sewa</h4>
+                    <p class="text-sm text-slate-500">Isi formulir dan tentukan durasi</p>
+                </div>
+                <div class="relative text-center">
+                    <div class="w-16 h-16 bg-blue-600 text-white font-black text-xl rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">3</div>
+                    <h4 class="font-extrabold text-lg text-slate-900 mb-2">Konfirmasi</h4>
+                    <p class="text-sm text-slate-500">Tim kami akan menghubungi Anda</p>
+                </div>
+                <div class="relative text-center">
+                    <div class="w-16 h-16 bg-blue-600 text-white font-black text-xl rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">4</div>
+                    <h4 class="font-extrabold text-lg text-slate-900 mb-2">Siap Digunakan</h4>
+                    <p class="text-sm text-slate-500">Proyektor diantar atau ambil di tempat</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 pt-20 pb-10">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 pb-12 border-b border-slate-800">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-white mb-4">Butuh Proyektor untuk Acara?</h2>
+                    <p class="text-slate-400 mb-6">Konsultasi gratis via WhatsApp, kami siap membantu 24/7</p>
+                    <div class="flex gap-4">
+                        <a href="https://wa.me/6281234567890" class="inline-flex items-center gap-3 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-xl transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a1.999 1.999 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8 10a16 16 0 0 0 6 6l1.27-1.27a1.999 1.999 0 0 1 2.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            Chat Admin
+                        </a>
+                        <a href="tel:+6281234567890" class="inline-flex items-center gap-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold px-6 py-3 rounded-xl transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8 10a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            Telepon
+                        </a>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-8">
+                    <div>
+                        <h5 class="text-white font-bold mb-4 uppercase text-xs tracking-widest">Kontak</h5>
+                        <p class="text-sm mb-2 hover:text-white transition">info@sinarproyek.com</p>
+                        <p class="text-sm hover:text-white transition">+62 812 3456 7890</p>
+                        <p class="text-sm mt-4 hover:text-white transition">@sinarproyek</p>
+                    </div>
+                    <div>
+                        <h5 class="text-white font-bold mb-4 uppercase text-xs tracking-widest">Lokasi</h5>
+                        <p class="text-sm leading-relaxed hover:text-white transition">Jl. Teknologi No. 45, Jakarta Selatan</p>
+                        <p class="text-sm mt-4 text-slate-500">Buka: Senin-Minggu 08:00-22:00</p>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-8 text-center text-sm font-medium tracking-wider text-slate-500">
+                &copy; 2026 SinarProyek - Solusi Sewa Proyektor Profesional. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
